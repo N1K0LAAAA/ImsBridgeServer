@@ -1,26 +1,16 @@
-async function updateChannelTopic(client, channelId, totalClients) {
+async function updateChannelTopic(client, channelId, count, guildName = 'Combined') {
     try {
-        const channel = await client.channels.fetch(channelId, { cache: false });
-        if(!channel) {
-            console.warn('[Discord] Channel not found.');
-            return;
+        const channel = await client.channels.fetch(channelId);
+        if(channel) {
+            const topic = `${guildName} Bridge - ${count} player${count !== 1 ? 's' : ''} connected`;
+            await channel.setTopic(topic);
+            console.log(`[Channel] Updated ${guildName} topic: ${topic}`);
         }
-
-        const newTopic = `[WS] Connected Minecraft clients: ${totalClients}`;
-        const currentTopic = channel.topic || '';
-
-        if(currentTopic.trim() === newTopic.trim()) {
-            console.log('[Debug] Topic unchanged. Skipping update.');
-            return;
-        }
-
-        await channel.setTopic(newTopic);
-        console.log(`[Discord] Channel topic updated to: "${newTopic}"`);
-    } catch(err) {
-        console.error('[Discord] Error updating topic:', err);
+    } catch(error) {
+        console.error(`[Channel] Error updating topic for ${guildName}:`, error);
     }
 }
 
 module.exports = {
-    updateChannelTopic,
+    updateChannelTopic
 };

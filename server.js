@@ -5,12 +5,19 @@ const DiscordHandler = require('./src/discord/DiscordHandler');
 const CommandHandler = require('./src/discord/CommandHandler');
 const { updateChannelTopic } = require('./src/utils/channelUtils');
 
-// Configuration
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const CHANNEL_ID = process.env.CHANNEL_ID;
+const CHANNEL_ID = process.env.COMBINED_CHANNEL_ID;
 const KEY_LOG_CHANNEL_ID = process.env.KEY_LOG_CHANNEL_ID;
+const IMS_BRIDGE_CHANNEL_ID = process.env.IMS_BRIDGE_CHANNEL_ID;
+const IMA_BRIDGE_CHANNEL_ID = process.env.IMA_BRIDGE_CHANNEL_ID;
+const IMC_BRIDGE_CHANNEL_ID = process.env.IMC_BRIDGE_CHANNEL_ID;
 
-// Create Discord client
+const channelIds = {
+    IMS_BRIDGE_CHANNEL_ID,
+    IMA_BRIDGE_CHANNEL_ID,
+    IMC_BRIDGE_CHANNEL_ID
+};
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -19,31 +26,67 @@ const client = new Client({
     ],
 });
 
-// Initialize WebSocket server
 const wsServer = new WebSocketServer(3000);
 
-// Initialize Discord handler
-const discordHandler = new DiscordHandler(client, CHANNEL_ID, wsServer);
+const discordHandler = new DiscordHandler(client, channelIds, wsServer);
 
-// Initialize command handler
 const commandHandler = new CommandHandler(client, KEY_LOG_CHANNEL_ID);
 
-// Set up periodic topic updates
 const FIVE_MINUTES = 5 * 60 * 1000;
 setInterval(() => {
-    updateChannelTopic(client, CHANNEL_ID, wsServer.getConnectedClients());
+    const guildCounts = wsServer.getConnectedClientsByGuild();
+
+    // Update each guild channel topic
+    Object.entries(channelIds).forEach(([key, channelId]) => {
+        let guildName = '';
+        switch(key) {
+            case 'IMS_BRIDGE_CHANNEL_ID':
+                guildName = 'Ironman Sweats';
+                break;
+            case 'IMA_BRIDGE_CHANNEL_ID':
+                guildName = 'Ironman Academy';
+                break;
+            case 'IMC_BRIDGE_CHANNEL_ID':
+                guildName = 'Ironman Casuals';
+                break;
+        }
+
+        const count = guildCounts[guildName] || 0;
+        updateChannelTopic(client, channelId, count, guildName);
+    });
+
+    if(CHANNEL_ID) {
+        updateChannelTopic(client, CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
+    }
 }, FIVE_MINUTES);
 
-// Client ready event
 client.once('ready', async () => {
     console.log('[Discord] Logged in as ' + client.user.tag);
 
-    // Register slash commands
     await commandHandler.registerCommands();
 
-    // Initial topic update
-    updateChannelTopic(client, CHANNEL_ID, wsServer.getConnectedClients());
+    const guildCounts = wsServer.getConnectedClientsByGuild();
+    Object.entries(channelIds).forEach(([key, channelId]) => {
+        let guildName = '';
+        switch(key) {
+            case 'IMS_BRIDGE_CHANNEL_ID':
+                guildName = 'Ironman Sweats';
+                break;
+            case 'IMA_BRIDGE_CHANNEL_ID':
+                guildName = 'Ironman Academy';
+                break;
+            case 'IMC_BRIDGE_CHANNEL_ID':
+                guildName = 'Ironman Casuals';
+                break;
+        }
+
+        const count = guildCounts[guildName] || 0;
+        updateChannelTopic(client, channelId, count, guildName);
+    });
+
+    if(CHANNEL_ID) {
+        updateChannelTopic(client, CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
+    }
 });
 
-// Start the application
 client.login(DISCORD_TOKEN);
