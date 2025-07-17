@@ -2,9 +2,8 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { loadMemberData } = require('../utils/dataUtils');
 
 class CommandHandler {
-    constructor(client, keyLogChannelId) {
+    constructor(client) {
         this.client = client;
-        this.keyLogChannelId = keyLogChannelId;
 
         this.setupEventHandlers();
     }
