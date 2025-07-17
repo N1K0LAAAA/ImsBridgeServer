@@ -153,7 +153,7 @@ class WebSocketServer extends EventEmitter {
                 guild: userData.guild_name,
                 player: userData.minecraft_name
             });
-        } else if (obj.combinedbridge == true){
+        } else if (obj.combinedbridge == true && obj.msg !== '/locraw'){
             const userData = this.authenticatedSockets.get(ws);
             // If combined message, emit a bounce request back to all connected clients except the one who sent it
                 this.emit('minecraftBounce', {
