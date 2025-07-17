@@ -183,7 +183,7 @@ class WebSocketServer extends EventEmitter {
         const username = prefix
             .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
             .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
-            .match(/[\w]+/, '')[0];
+            .match(/[\w]+/, '')?.[0] ?? "Unknown User";
         const trimmedMessage = message.trim();
         const cleaned = [username, trimmedMessage].join(": ");
         return cleaned;
