@@ -45,6 +45,7 @@ class DiscordHandler {
             from: 'discord',
             msg: `${displayName}: ${msg.content}`,
             combinedbridge: combinedBridgeEnabled,
+            guild: targetGuild
         };
 
         this.wsServer.sendToMinecraft(messageToSend, targetGuild);

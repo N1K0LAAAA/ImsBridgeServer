@@ -144,7 +144,7 @@ class WebSocketServer extends EventEmitter {
                 .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
                 .replace(/§\w/g, '') // remove formatting codes
                 .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
-                .replace(/[♲♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
+                .replace(/[♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
                 .trim();
 
             // Emit message with guild information
@@ -171,7 +171,7 @@ class WebSocketServer extends EventEmitter {
             .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
             .replace(/§\w/g, '') // remove formatting codes
             .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
-            .replace(/[♲♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
+            .replace(/[♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
             .replace(/\s+/g, ' ') // normalize whitespace
             .trim()
             .toLowerCase();
@@ -187,7 +187,7 @@ class WebSocketServer extends EventEmitter {
         const json = JSON.stringify(message);
         this.authenticatedSockets.forEach((userData, socket) => {
             if(socket.readyState === WebSocket.OPEN) {
-                // If targetGuild is specified, only send to that guild, and dont send 
+                // If targetGuild is specified, only send to that guild
                 // && userData.minecraft_name !== fromMinecraftName
                 if((targetGuild === null || userData.guild_name === targetGuild)) {
                     socket.send(json);
