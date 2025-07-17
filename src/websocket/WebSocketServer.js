@@ -138,7 +138,7 @@ class WebSocketServer extends EventEmitter {
             return;
         }
 
-        if(obj.from === 'mc' && obj.msg && this.isUniqueGuildMsg(obj.msg)) {
+        if(obj.from === 'mc' && obj.msg && this.isUniqueGuildMsg(obj.msg) && !obj.combinedbridge) {
             const userData = this.authenticatedSockets.get(ws);
             const cleanedMsg = obj.msg
                 .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
@@ -150,19 +150,23 @@ class WebSocketServer extends EventEmitter {
             // Emit message with guild information
             this.emit('minecraftMessage', {
                 message: cleanedMsg,
-                guild: (obj.combinedbridge == true) ? 'Combined' : userData.guild_name,
-                player: userData.minecraft_name,
+                guild: userData.guild_name,
+                player: userData.minecraft_name
             });
-
+        } else if (obj.combinedbridge == true){
+            const userData = this.authenticatedSockets.get(ws);
             // If combined message, emit a bounce request back to all connected clients except the one who sent it
-            if(obj.combinedbridge == true) {
                 this.emit('minecraftBounce', {
-                    msg: cleanedMsg,
+                    msg: obj.msg,
                     player: userData.minecraft_name,
                     combinedbridge: true,
                     guild: userData.guild_name
                 });
-            }
+                this.emit('minecraftMessage', {
+                    message: obj.msg,
+                    guild: 'Combined',
+                    player: userData.minecraft_name
+                })
         }
     }
 

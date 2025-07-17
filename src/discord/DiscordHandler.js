@@ -49,7 +49,7 @@ class DiscordHandler {
         };
 
         this.wsServer.sendToMinecraft(messageToSend, targetGuild);
-        console.log(`[Discord] Forwarded to ${targetGuild || 'All Guilds'}:`, messageToSend);
+        console.log(`[Discord] Forwarded to ${targetGuild || 'All Guilds'}:`, `${displayName}: ${msg.content}`);
     }
 
     bounceMinecraftMessage(data) {
@@ -65,7 +65,7 @@ class DiscordHandler {
             };
             
             this.wsServer.sendToMinecraft(messageToBounce, null, player);
-            console.log(`[MC] Bounced combined chat msg back to connected clients:`, messageToBounce);
+            console.log(`[MC] Bounced combined chat msg back to connected clients:`, player + ": " + msg);
 
         } catch (err) {
             console.error('[MC] Bounce error:', err);
