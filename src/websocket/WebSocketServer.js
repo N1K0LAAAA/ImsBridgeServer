@@ -187,8 +187,7 @@ class WebSocketServer extends EventEmitter {
         this.authenticatedSockets.forEach((userData, socket) => {
             if(socket.readyState === WebSocket.OPEN) {
                 // If targetGuild is specified, only send to that guild, and dont send 
-                // && userData.minecraft_name !== fromMinecraftName
-                if((targetGuild === null || userData.guild_name === targetGuild) ) {
+                if((targetGuild === null || userData.guild_name === targetGuild) && userData.minecraft_name !== fromMinecraftName) {
                     socket.send(json);
                 }
             }
