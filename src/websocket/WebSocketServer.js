@@ -180,11 +180,13 @@ class WebSocketServer extends EventEmitter {
             .replace(/\s+/g, ' ') // normalize whitespace
             .trim();
         const [prefix, message] = unformatted.split(":");
+        if(!prefix || !message)
+            return msg;
         const username = prefix
             .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
             .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
             .match(/[\w]+/, '')?.[0] ?? "Unknown User";
-        const trimmedMessage = message.trim();
+        const trimmedMessage = message?.trim() ?? "Unknown Message";
         const cleaned = [username, trimmedMessage].join(": ");
         return cleaned;
     }
