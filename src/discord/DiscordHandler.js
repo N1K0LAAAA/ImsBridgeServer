@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 class DiscordHandler {
     constructor(client, channelIds, wsServer) {
         this.client = client;
-        this.channelIds = channelIds; 
+        this.channelIds = channelIds;
         this.wsServer = wsServer;
         this.setupEventHandlers();
     }
@@ -16,12 +16,16 @@ class DiscordHandler {
         this.wsServer.on('minecraftMessage', (data) => {
             this.sendMinecraftMessageToDiscord(data);
         });
+        this.wsServer.on('minecraftBounce', (data) => {
+            this.bounceMinecraftMessage(data);
+        });
     }
 
     handleDiscordMessage(msg) {
         if(msg.author.bot) return;
 
         let targetGuild = null;
+        let combinedBridgeEnabled = false;
 
         if(msg.channel.id === this.channelIds.IMS_BRIDGE_CHANNEL_ID) {
             targetGuild = 'Ironman Sweats';
@@ -29,22 +33,48 @@ class DiscordHandler {
             targetGuild = 'Ironman Academy';
         } else if(msg.channel.id === this.channelIds.IMC_BRIDGE_CHANNEL_ID) {
             targetGuild = 'Ironman Casuals';
+        } else if(msg.channel.id === this.channelIds.COMBINED_CHANNEL_ID) {
+            combinedBridgeEnabled = true
         } else {
-            return; 
+            return;
         }
+
+        const displayName = msg.member?.displayName || msg.author.username;
 
         const messageToSend = {
             from: 'discord',
-            msg: `${msg.author.username}: ${msg.content}`,
+            msg: `${displayName}: ${msg.content}`,
+            combinedbridge: combinedBridgeEnabled,
+            guild: targetGuild
         };
 
         this.wsServer.sendToMinecraft(messageToSend, targetGuild);
-        console.log(`[Discord] Forwarded to ${targetGuild}:`, messageToSend);
+        console.log(`[Discord] Forwarded to ${targetGuild || 'All Guilds'}:`, `${displayName}: ${msg.content}`);
+    }
+
+    bounceMinecraftMessage(data) {
+        try {
+            const { msg, player, combinedbridge, guild } = data;
+            
+            const messageToBounce = {
+                from: 'mc',
+                msg: player + ": " + msg,
+                combinedbridge: combinedbridge,
+                fromplayer: player,
+                guild: guild
+            };
+            
+            this.wsServer.sendToMinecraft(messageToBounce, null, player);
+            console.log(`[MC] Bounced combined chat msg back to connected clients:`, player + ": " + msg);
+
+        } catch (err) {
+            console.error('[MC] Bounce error:', err);
+        }
     }
 
     async sendMinecraftMessageToDiscord(data) {
         try {
-            const { message, guild, player } = data;
+            let { message, guild, player } = data;
 
             let targetChannelId = null;
             let guildDisplayName = '';
@@ -62,6 +92,11 @@ class DiscordHandler {
                     targetChannelId = this.channelIds.IMC_BRIDGE_CHANNEL_ID;
                     guildDisplayName = '[IMC]';
                     break;
+                case 'Combined':
+                    targetChannelId = this.channelIds.COMBINED_CHANNEL_ID;
+                    guildDisplayName = '[ALL]';
+                    message = player + ": " + message;
+                    break;
                 default:
                     console.warn(`[Discord] Unknown guild: ${guild}`);
                     return;
@@ -71,10 +106,11 @@ class DiscordHandler {
                 .setTitle(guildDisplayName)
                 .setColor(this.getGuildColor(guild))
                 .setDescription(message)
+                .setFooter({ text: `Received from: ${player}` });
 
             const channel = await this.client.channels.fetch(targetChannelId);
             await channel.send({ embeds: [embed] });
-            console.log(`[Discord] Sent embed to ${guildDisplayName}:`, message);
+            console.log(`[Discord] Sent embed to ${guildDisplayName} from player ${player}:`, message);
         } catch(err) {
             console.error('[Discord] Send error:', err);
         }

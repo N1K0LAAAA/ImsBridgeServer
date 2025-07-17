@@ -6,16 +6,17 @@ const CommandHandler = require('./src/discord/CommandHandler');
 const { updateChannelTopic } = require('./src/utils/channelUtils');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const CHANNEL_ID = process.env.COMBINED_CHANNEL_ID;
-const KEY_LOG_CHANNEL_ID = process.env.KEY_LOG_CHANNEL_ID;
+const COMBINED_CHANNEL_ID = process.env.COMBINED_CHANNEL_ID;
 const IMS_BRIDGE_CHANNEL_ID = process.env.IMS_BRIDGE_CHANNEL_ID;
 const IMA_BRIDGE_CHANNEL_ID = process.env.IMA_BRIDGE_CHANNEL_ID;
 const IMC_BRIDGE_CHANNEL_ID = process.env.IMC_BRIDGE_CHANNEL_ID;
+const KEY_LOG_CHANNEL_ID = process.env.KEY_LOG_CHANNEL_ID;
 
 const channelIds = {
     IMS_BRIDGE_CHANNEL_ID,
     IMA_BRIDGE_CHANNEL_ID,
-    IMC_BRIDGE_CHANNEL_ID
+    IMC_BRIDGE_CHANNEL_ID,
+    COMBINED_CHANNEL_ID
 };
 
 const client = new Client({
@@ -55,8 +56,8 @@ setInterval(() => {
         updateChannelTopic(client, channelId, count, guildName);
     });
 
-    if(CHANNEL_ID) {
-        updateChannelTopic(client, CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
+    if(COMBINED_CHANNEL_ID) {
+        updateChannelTopic(client, COMBINED_CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
     }
 }, FIVE_MINUTES);
 
@@ -84,8 +85,8 @@ client.once('ready', async () => {
         updateChannelTopic(client, channelId, count, guildName);
     });
 
-    if(CHANNEL_ID) {
-        updateChannelTopic(client, CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
+    if(COMBINED_CHANNEL_ID) {
+        updateChannelTopic(client, COMBINED_CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
     }
 });
 

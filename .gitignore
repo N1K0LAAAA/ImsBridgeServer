@@ -31,3 +31,6 @@ yarn-error.log*
 dist/
 build/
 coverage/
+
+#Json
+guild_members.json
