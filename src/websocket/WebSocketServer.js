@@ -140,12 +140,7 @@ class WebSocketServer extends EventEmitter {
 
         if(obj.from === 'mc' && obj.msg && this.isUniqueGuildMsg(obj.msg) && !obj.combinedbridge) {
             const userData = this.authenticatedSockets.get(ws);
-            const cleanedMsg = obj.msg
-                .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
-                .replace(/§\w/g, '') // remove formatting codes
-                .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
-                .replace(/[♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
-                .trim();
+            const cleanedMsg = this.cleanChatMessage(obj.msg);
 
             // Emit message with guild information
             this.emit('minecraftMessage', {
@@ -171,21 +166,28 @@ class WebSocketServer extends EventEmitter {
     }
 
     isUniqueGuildMsg(msg) {
-        const cleaned = msg
-            .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
-            .replace(/§\w/g, '') // remove formatting codes
-            .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
-            .replace(/[♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
-            .replace(/\s+/g, ' ') // normalize whitespace
-            .trim()
-            .toLowerCase();
+        const cleaned = this.cleanChatMessage(msg).toLowerCase();
 
         if(this.lastGuildMsgs.includes(cleaned)) return false;
         this.lastGuildMsgs.push(cleaned);
         if(this.lastGuildMsgs.length > 100) this.lastGuildMsgs.shift();
         return true;
     }
-
+    
+    cleanChatMessage(msg) {
+        const unformatted = msg
+            .replace(/§\w/g, '') // remove formatting codes
+            .replace(/\s+/g, ' ') // normalize whitespace
+            .trim();
+        const [prefix, message] = unformatted.split(":");
+        const username = prefix
+            .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
+            .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
+            .match(/[\w]+/, '')[0];
+        const trimmedMessage = message.trim();
+        const cleaned = [username, trimmedMessage].join(": ");
+        return cleaned;
+    }
 
     sendToMinecraft(message, targetGuild = null, fromMinecraftName = null) {
         const json = JSON.stringify(message);
