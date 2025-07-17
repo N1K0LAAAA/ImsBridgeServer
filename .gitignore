@@ -33,4 +33,4 @@ build/
 coverage/
 
 #Json
-*.json
+guild_members.json
