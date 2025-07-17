@@ -53,12 +53,14 @@ class DiscordHandler {
 
     bounceMinecraftMessage(data) {
         try {
-            const { msg, player, combinedbridge } = data;
+            const { msg, player, combinedbridge, guild } = data;
             
             const messageToBounce = {
                 from: 'mc',
-                msg: msg,
+                msg: player + ": " + msg,
                 combinedbridge: combinedbridge,
+                fromplayer: player,
+                guild: guild
             };
             
             this.wsServer.sendToMinecraft(messageToBounce, null, player);

@@ -155,11 +155,12 @@ class WebSocketServer extends EventEmitter {
             });
 
             // If combined message, emit a bounce request back to all connected clients except the one who sent it
-            if (obj.combinedbridge == true) {
+            if(obj.combinedbridge == true) {
                 this.emit('minecraftBounce', {
                     msg: cleanedMsg,
                     player: userData.minecraft_name,
-                    combinedbridge: true
+                    combinedbridge: true,
+                    guild: userData.guild_name
                 });
             }
         }
@@ -187,7 +188,8 @@ class WebSocketServer extends EventEmitter {
         this.authenticatedSockets.forEach((userData, socket) => {
             if(socket.readyState === WebSocket.OPEN) {
                 // If targetGuild is specified, only send to that guild, and dont send 
-                if((targetGuild === null || userData.guild_name === targetGuild) && userData.minecraft_name !== fromMinecraftName) {
+                // && userData.minecraft_name !== fromMinecraftName
+                if((targetGuild === null || userData.guild_name === targetGuild)) {
                     socket.send(json);
                 }
             }
