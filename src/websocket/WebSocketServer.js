@@ -181,7 +181,7 @@ class WebSocketServer extends EventEmitter {
             .trim();
         const [prefix, message] = unformatted.split(":");
         if(!prefix || !message)
-            return msg;
+            return unformatted;
         const username = prefix
             .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
             .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
