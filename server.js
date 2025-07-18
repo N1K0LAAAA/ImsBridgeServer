@@ -35,7 +35,7 @@ const commandHandler = new CommandHandler(client, KEY_LOG_CHANNEL_ID);
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 setInterval(() => {
-    const guildCounts = wsServer.getConnectedClientsByGuild();
+    const guildCounts = wsServer.getConnectedClientsByGuild()[0];
 
     // Update each guild channel topic
     Object.entries(channelIds).forEach(([key, channelId]) => {
@@ -66,7 +66,7 @@ client.once('ready', async () => {
 
     await commandHandler.registerCommands();
 
-    const guildCounts = wsServer.getConnectedClientsByGuild();
+    const guildCounts = wsServer.getConnectedClientsByGuild()[0];
     Object.entries(channelIds).forEach(([key, channelId]) => {
         let guildName = '';
         switch(key) {

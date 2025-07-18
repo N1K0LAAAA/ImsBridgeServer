@@ -137,9 +137,12 @@ class WebSocketServer extends EventEmitter {
             console.log('[WS] Invalid JSON:', e);
             return;
         }
-
+        const userData = this.authenticatedSockets.get(ws);
+        if (obj.request) {
+            this.handleClientCommandRequest(obj, userData)
+        }
+       
         if(obj.from === 'mc' && obj.msg && this.isUniqueGuildMsg(obj.msg) && !obj.combinedbridge) {
-            const userData = this.authenticatedSockets.get(ws);
             const cleanedMsg = obj.msg
                 .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
                 .replace(/§\w/g, '') // remove formatting codes
@@ -153,9 +156,8 @@ class WebSocketServer extends EventEmitter {
                 guild: userData.guild_name,
                 player: userData.minecraft_name
             });
-        } else if (obj.combinedbridge == true && obj.msg !== '/locraw'){
-            const userData = this.authenticatedSockets.get(ws);
-            // If combined message, emit a bounce request back to all connected clients except the one who sent it
+        } else if (obj.combinedbridge == true && obj.msg){
+            // If combined message, emit a bounce request back to all connected clients
                 this.emit('minecraftBounce', {
                     msg: obj.msg,
                     player: userData.minecraft_name,
@@ -164,9 +166,33 @@ class WebSocketServer extends EventEmitter {
                 });
                 this.emit('minecraftMessage', {
                     message: obj.msg,
-                    guild: 'Combined',
-                    player: userData.minecraft_name
+                    player: userData.minecraft_name,
+                    combinedbridge: true,
+                    guild: userData.guild_name
                 })
+        }
+    }
+
+    handleClientCommandRequest(obj, userData) {
+        const request = obj.request
+        let response = {}
+        switch (request) {
+            case 'getOnlinePlayers':
+                response = this.getConnectedClientsByGuild()[1]
+                break;
+            // Space for more server-client commands
+            default:
+                console.warn(`[ClientRequest] Unknown request: ${request}`);
+        }
+        try {
+            const responseMessage = {
+                    request: request,
+                    response: response
+                }
+            this.sendToMinecraft(responseMessage, null, userData.minecraft_name);
+            console.log(`[ClientRequest] Responded to command request ${obj.request} from ${userData.minecraft_name}`);
+        } catch (err) {
+            console.error('[ClientRequest]: ', err);
         }
     }
 
@@ -187,17 +213,21 @@ class WebSocketServer extends EventEmitter {
     }
 
 
-    sendToMinecraft(message, targetGuild = null, fromMinecraftName = null) {
+    sendToMinecraft(message, targetGuild = null, targetPlayer = null) {
         const json = JSON.stringify(message);
         this.authenticatedSockets.forEach((userData, socket) => {
             if(socket.readyState === WebSocket.OPEN) {
-                // If targetGuild is specified, only send to that guild
-                // && userData.minecraft_name !== fromMinecraftName
-                if((targetGuild === null || userData.guild_name === targetGuild)) {
+                // If targetGuild is specified, only send to that guild. If targetPlayer is specified, only send to that player.
+                if((targetGuild === null || userData.guild_name === targetGuild) && (targetPlayer === null || userData.minecraft_name === targetPlayer)) {
                     socket.send(json);
                 }
             }
         });
+    }
+
+    sendOnlinePlayers(obj, userData) {
+        const onlinePlayers = this.getConnectedClientsByGuild()[1];
+        
     }
 
     getConnectedClients() {
@@ -206,12 +236,18 @@ class WebSocketServer extends EventEmitter {
 
     getConnectedClientsByGuild() {
         const guildCounts = {};
+        const guilds = ["Ironman Sweats", "Ironman Casuals", "Ironman Academy"];
+        const playersByGuild = {};
+        guilds.forEach(guild => {
+            playersByGuild[guild] = [];
+        });
         this.authenticatedSockets.forEach((userData, socket) => {
             if(socket.readyState === WebSocket.OPEN) {
                 guildCounts[userData.guild_name] = (guildCounts[userData.guild_name] || 0) + 1;
+                playersByGuild[userData.guild_name].push(userData.minecraft_name);
             }
         });
-        return guildCounts;
+        return [guildCounts, playersByGuild];
     }
 
     async reloadValidKeys() {
