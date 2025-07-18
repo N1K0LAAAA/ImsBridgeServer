@@ -74,7 +74,7 @@ class DiscordHandler {
 
     async sendMinecraftMessageToDiscord(data) {
         try {
-            let { message, guild, player } = data;
+            let { message, player, combinedbridge, guild } = data;
 
             let targetChannelId = null;
             let guildDisplayName = '';
@@ -92,25 +92,23 @@ class DiscordHandler {
                     targetChannelId = this.channelIds.IMC_BRIDGE_CHANNEL_ID;
                     guildDisplayName = '[IMC]';
                     break;
-                case 'Combined':
-                    targetChannelId = this.channelIds.COMBINED_CHANNEL_ID;
-                    guildDisplayName = '[ALL]';
-                    message = player + ": " + message;
-                    break;
                 default:
                     console.warn(`[Discord] Unknown guild: ${guild}`);
                     return;
             }
+            if (combinedbridge) {
+                targetChannelId = this.channelIds.COMBINED_CHANNEL_ID;
+                message = player + ": " + message;
+            }
 
             const embed = new EmbedBuilder()
-                .setTitle(guildDisplayName)
                 .setColor(this.getGuildColor(guild))
                 .setDescription(message)
-                .setFooter({ text: `Received from: ${player}` });
+                .setFooter({ text: `Received from: ${guildDisplayName} ${player}` });
 
             const channel = await this.client.channels.fetch(targetChannelId);
             await channel.send({ embeds: [embed] });
-            console.log(`[Discord] Sent embed to ${guildDisplayName} from player ${player}:`, message);
+            console.log(`[Discord] Sent embed to ${combinedbridge ? "[CBRIDGE]" : guildDisplayName} from player ${player}:`, message);
         } catch(err) {
             console.error('[Discord] Send error:', err);
         }

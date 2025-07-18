@@ -153,9 +153,9 @@ class WebSocketServer extends EventEmitter {
                 guild: userData.guild_name,
                 player: userData.minecraft_name
             });
-        } else if (obj.combinedbridge == true && obj.msg !== '/locraw'){
+        } else if (obj.combinedbridge == true && obj.msg){
             const userData = this.authenticatedSockets.get(ws);
-            // If combined message, emit a bounce request back to all connected clients except the one who sent it
+            // If combined message, emit a bounce request back to all connected clients
                 this.emit('minecraftBounce', {
                     msg: obj.msg,
                     player: userData.minecraft_name,
@@ -164,8 +164,9 @@ class WebSocketServer extends EventEmitter {
                 });
                 this.emit('minecraftMessage', {
                     message: obj.msg,
-                    guild: 'Combined',
-                    player: userData.minecraft_name
+                    player: userData.minecraft_name,
+                    combinedbridge: true,
+                    guild: userData.guild_name
                 })
         }
     }
