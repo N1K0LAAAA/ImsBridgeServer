@@ -1,5 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { loadMemberData } = require('../utils/dataUtils');
+const GuildMemberUpdater = require('../services/GuildMemberUpdater'); // Adjust the path if needed
+
+// Use environment variable for security
+const API_KEY = process.env.HYPIXEL_API_KEY || 'YOUR_HYPIXEL_API_KEY'; // Replace with actual key or .env
 
 class CommandHandler {
     constructor(client) {
@@ -12,8 +16,13 @@ class CommandHandler {
         this.client.on('interactionCreate', async (interaction) => {
             if(!interaction.isChatInputCommand()) return;
 
-            if(interaction.commandName === 'key') {
-                await this.handleKeyCommand(interaction);
+            switch(interaction.commandName) {
+                case 'key':
+                    await this.handleKeyCommand(interaction);
+                    break;
+                case 'update-guild-members':
+                    await this.handleUpdateCommand(interaction);
+                    break;
             }
         });
     }
@@ -22,9 +31,11 @@ class CommandHandler {
         const commands = [
             new SlashCommandBuilder()
                 .setName('key')
-                .setDescription('Get your generated UUID key via DM')
-                .toJSON(),
-        ];
+                .setDescription('Get your generated UUID key via DM'),
+            new SlashCommandBuilder()
+                .setName('update-guild-members')
+                .setDescription('Force an update of guild members (admin only)')
+        ].map(cmd => cmd.toJSON());
 
         try {
             console.log('[Commands] Registering slash commands...');
@@ -81,7 +92,44 @@ class CommandHandler {
             });
         }
     }
-}
 
+    async handleUpdateCommand(interaction) {
+        try {
+            await interaction.deferReply({ ephemeral: true });
+
+            const requiredRoleIds = ['1394154421897924690', '1394878381484671066'];
+            const member = await interaction.guild.members.fetch(interaction.user.id);
+
+            const authorized = requiredRoleIds.some(roleId => member.roles.cache.has(roleId));
+
+            if(!authorized) {
+                await interaction.editReply('❌ You do not have permission to run this command.');
+                return;
+            }
+
+            const updater = new GuildMemberUpdater(API_KEY);
+            const summary = await updater.updateGuildMembers();
+
+            const summaryEmbed = new EmbedBuilder()
+                .setTitle('📊 Guild Members Updated')
+                .addFields(
+                    { name: 'Processed', value: `${summary.totalProcessed}`, inline: true },
+                    { name: 'New Members', value: `${summary.newMembersAdded}`, inline: true },
+                    { name: 'Removed', value: `${summary.membersWhoLeft}`, inline: true },
+                    { name: 'Final Count', value: `${summary.finalMemberCount}`, inline: true }
+                )
+                .setColor(0x3498db)
+                .setTimestamp();
+
+            await interaction.editReply({ content: '✅ Update complete!', embeds: [summaryEmbed] });
+
+        } catch(error) {
+            console.error('[Commands] Error in /update-guild-members:', error);
+            await interaction.editReply('❌ Failed to update guild members. Please check logs.');
+        }
+    }
+
+
+}
 
 module.exports = CommandHandler;
