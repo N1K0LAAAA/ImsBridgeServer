@@ -140,6 +140,7 @@ class WebSocketServer extends EventEmitter {
         const userData = this.authenticatedSockets.get(ws);
         if (obj.request) {
             this.handleClientCommandRequest(obj, userData)
+            return;
         }
        
         if(obj.from === 'mc' && obj.msg && this.isUniqueGuildMsg(obj.msg) && !obj.combinedbridge) {
@@ -157,6 +158,7 @@ class WebSocketServer extends EventEmitter {
                 player: userData.minecraft_name
             });
         } else if (obj.combinedbridge == true && obj.msg){
+            const userData = this.authenticatedSockets.get(ws);
             // If combined message, emit a bounce request back to all connected clients
                 this.emit('minecraftBounce', {
                     msg: obj.msg,
