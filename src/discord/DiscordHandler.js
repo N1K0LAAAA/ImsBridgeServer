@@ -64,7 +64,7 @@ class DiscordHandler {
                 guild: guild
             };
             
-            this.wsServer.sendToMinecraft(messageToBounce, null, player);
+            this.wsServer.sendToMinecraft(messageToBounce, null, null);
             console.log(`[MC] Bounced combined chat msg back to connected clients:`, player + ": " + msg);
 
         } catch (err) {
