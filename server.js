@@ -40,25 +40,28 @@ setInterval(() => {
     // Update each guild channel topic
     Object.entries(channelIds).forEach(([key, channelId]) => {
         let guildName = '';
+        let count = 0
         switch(key) {
             case 'IMS_BRIDGE_CHANNEL_ID':
                 guildName = 'Ironman Sweats';
+                count = guildCounts[guildName] || 0;
                 break;
             case 'IMA_BRIDGE_CHANNEL_ID':
                 guildName = 'Ironman Academy';
+                count = guildCounts[guildName] || 0;
                 break;
             case 'IMC_BRIDGE_CHANNEL_ID':
                 guildName = 'Ironman Casuals';
+                count = guildCounts[guildName] || 0;
+                break;
+            case 'COMBINED_CHANNEL_ID':
+                guildName = 'Combined';
+                count = wsServer.getConnectedClients();
                 break;
         }
 
-        const count = guildCounts[guildName] || 0;
         updateChannelTopic(client, channelId, count, guildName);
     });
-
-    if(COMBINED_CHANNEL_ID) {
-        updateChannelTopic(client, COMBINED_CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
-    }
 }, FIVE_MINUTES);
 
 client.once('ready', async () => {
@@ -69,25 +72,30 @@ client.once('ready', async () => {
     const guildCounts = wsServer.getConnectedClientsByGuild()[0];
     Object.entries(channelIds).forEach(([key, channelId]) => {
         let guildName = '';
+        let count = 0
         switch(key) {
             case 'IMS_BRIDGE_CHANNEL_ID':
                 guildName = 'Ironman Sweats';
+                count = guildCounts[guildName] || 0;
                 break;
             case 'IMA_BRIDGE_CHANNEL_ID':
                 guildName = 'Ironman Academy';
+                count = guildCounts[guildName] || 0;
                 break;
             case 'IMC_BRIDGE_CHANNEL_ID':
                 guildName = 'Ironman Casuals';
+                count = guildCounts[guildName] || 0;
+                break;
+            case 'COMBINED_CHANNEL_ID':
+                guildName = 'Combined';
+                count = wsServer.getConnectedClients();
                 break;
         }
 
-        const count = guildCounts[guildName] || 0;
         updateChannelTopic(client, channelId, count, guildName);
     });
-
-    if(COMBINED_CHANNEL_ID) {
-        updateChannelTopic(client, COMBINED_CHANNEL_ID, wsServer.getConnectedClients(), 'Combined');
-    }
 });
+
+
 
 client.login(DISCORD_TOKEN);
