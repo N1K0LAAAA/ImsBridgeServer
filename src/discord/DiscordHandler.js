@@ -75,10 +75,11 @@ class DiscordHandler {
     async sendMinecraftMessageToDiscord(data) {
         try {
             let { message, player, combinedbridge, guild } = data;
-
             let targetChannelId = null;
             let guildDisplayName = '';
-
+            let author = '';
+            let message_parts = null;
+            let text = '';
             switch(guild) {
                 case 'Ironman Sweats':
                     targetChannelId = this.channelIds.IMS_BRIDGE_CHANNEL_ID;
@@ -98,13 +99,19 @@ class DiscordHandler {
             }
             if (combinedbridge) {
                 targetChannelId = this.channelIds.COMBINED_CHANNEL_ID;
-                message = player + ": " + message;
+                author = player;
+                text = message;
 
+            } else {
+                [author, ...message_parts] = message.split(" : ");
+                text = message_parts.join(" : ");
             }
 
             const embed = new EmbedBuilder()
                 .setColor(this.getGuildColor(guild))
-                .setDescription(message)
+                .setAuthor({name: author, iconURL: `https://www.mc-heads.net/avatar/${author}`})
+                .setDescription(text)
+                .setTimestamp()
                 .setFooter({ text: `Received from: ${guildDisplayName} ${player}` });
 
             const channel = await this.client.channels.fetch(targetChannelId);
@@ -118,11 +125,11 @@ class DiscordHandler {
     getGuildColor(guild) {
         switch(guild) {
             case 'Ironman Sweats':
-                return 0xFF0000; // Red
+                return 0x55FF55; // Red
             case 'Ironman Academy':
-                return 0x0000FF; // Blue
+                return 0x00AA00; // Blue
             case 'Ironman Casuals':
-                return 0x00FF00; // Green
+                return 0x00AAAA; // Green
             default:
                 return 0x00AE86; // Default teal
         }
