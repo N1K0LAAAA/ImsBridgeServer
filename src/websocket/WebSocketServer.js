@@ -138,17 +138,17 @@ class WebSocketServer extends EventEmitter {
             return;
         }
         const userData = this.authenticatedSockets.get(ws);
-        if (obj.request) {
+        if(obj.request) {
             this.handleClientCommandRequest(obj, userData)
             return;
         }
-       
+
         if(obj.from === 'mc' && obj.msg && this.isUniqueGuildMsg(obj.msg) && !obj.combinedbridge) {
             const cleanedMsg = obj.msg
                 .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
                 .replace(/§\w/g, '') // remove formatting codes
                 .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
-                .replace(/[♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
+                .replace(/[♲ቾ⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
                 .trim();
 
             // Emit message with guild information
@@ -157,28 +157,28 @@ class WebSocketServer extends EventEmitter {
                 guild: userData.guild_name,
                 player: userData.minecraft_name
             });
-        } else if (obj.combinedbridge == true && obj.msg){
+        } else if(obj.combinedbridge == true && obj.msg) {
             const userData = this.authenticatedSockets.get(ws);
             // If combined message, emit a bounce request back to all connected clients
-                this.emit('minecraftBounce', {
-                    msg: obj.msg,
-                    player: userData.minecraft_name,
-                    combinedbridge: true,
-                    guild: userData.guild_name
-                });
-                this.emit('minecraftMessage', {
-                    message: obj.msg,
-                    player: userData.minecraft_name,
-                    combinedbridge: true,
-                    guild: userData.guild_name
-                })
+            this.emit('minecraftBounce', {
+                msg: obj.msg,
+                player: userData.minecraft_name,
+                combinedbridge: true,
+                guild: userData.guild_name
+            });
+            this.emit('minecraftMessage', {
+                message: obj.msg,
+                player: userData.minecraft_name,
+                combinedbridge: true,
+                guild: userData.guild_name
+            })
         }
     }
 
     handleClientCommandRequest(obj, userData) {
         const request = obj.request
         let response = {}
-        switch (request) {
+        switch(request) {
             case 'getOnlinePlayers':
                 response = this.getConnectedClientsByGuild()[1]
                 break;
@@ -188,12 +188,12 @@ class WebSocketServer extends EventEmitter {
         }
         try {
             const responseMessage = {
-                    request: request,
-                    response: response
-                }
+                request: request,
+                response: response
+            }
             this.sendToMinecraft(responseMessage, null, userData.minecraft_name);
             console.log(`[ClientRequest] Responded to command request ${obj.request} from ${userData.minecraft_name}`);
-        } catch (err) {
+        } catch(err) {
             console.error('[ClientRequest]: ', err);
         }
     }
@@ -203,7 +203,7 @@ class WebSocketServer extends EventEmitter {
             .replace(/\[[^\]]+\]\s*/g, '') // remove [RANK], [DIVINE], etc.
             .replace(/§\w/g, '') // remove formatting codes
             .replace(/^Guild\s?>?\s?/, '') // remove "Guild > "
-            .replace(/[♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
+            .replace(/[ቾ♲⚒♻️♾️✨★☆♠♣♥♦✓✔︎•·●○◉◎★☆¤§©®™✓☑️❌➤➔→←↑↓↔↕]/g, '')
             .replace(/\s+/g, ' ') // normalize whitespace
             .trim()
             .toLowerCase();
@@ -229,7 +229,7 @@ class WebSocketServer extends EventEmitter {
 
     sendOnlinePlayers(obj, userData) {
         const onlinePlayers = this.getConnectedClientsByGuild()[1];
-        
+
     }
 
     getConnectedClients() {
