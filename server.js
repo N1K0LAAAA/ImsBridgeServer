@@ -4,6 +4,7 @@ const WebSocketServer = require('./src/websocket/WebSocketServer');
 const DiscordHandler = require('./src/discord/DiscordHandler');
 const CommandHandler = require('./src/discord/CommandHandler');
 const { updateChannelTopic } = require('./src/utils/channelUtils');
+const GuildMemberUpdater = require('./src/services/GuildMemberUpdater');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const COMBINED_CHANNEL_ID = process.env.COMBINED_CHANNEL_ID;
@@ -11,6 +12,7 @@ const IMS_BRIDGE_CHANNEL_ID = process.env.IMS_BRIDGE_CHANNEL_ID;
 const IMA_BRIDGE_CHANNEL_ID = process.env.IMA_BRIDGE_CHANNEL_ID;
 const IMC_BRIDGE_CHANNEL_ID = process.env.IMC_BRIDGE_CHANNEL_ID;
 const KEY_LOG_CHANNEL_ID = process.env.KEY_LOG_CHANNEL_ID;
+const API_KEY = process.env.HYPIXEL_API_KEY;
 
 const channelIds = {
     IMS_BRIDGE_CHANNEL_ID,
@@ -34,6 +36,8 @@ const discordHandler = new DiscordHandler(client, channelIds, wsServer);
 const commandHandler = new CommandHandler(client, KEY_LOG_CHANNEL_ID);
 
 const FIVE_MINUTES = 5 * 60 * 1000;
+const AUTO_UPDATE_INTERVAL = 10 * 60 * 1000 // update guild members from api every 10 minutes
+
 setInterval(() => {
     const guildCounts = wsServer.getConnectedClientsByGuild()[0];
 
@@ -63,6 +67,16 @@ setInterval(() => {
         updateChannelTopic(client, channelId, count, guildName);
     });
 }, FIVE_MINUTES);
+
+setInterval(async () => {
+    try {
+        const updater = new GuildMemberUpdater(API_KEY);
+        const summary = await updater.updateGuildMembers();
+
+    } catch (err) {
+        console.error("Auto update failed:", err);
+    }
+}, AUTO_UPDATE_INTERVAL);
 
 client.once('ready', async () => {
     console.log('[Discord] Logged in as ' + client.user.tag);

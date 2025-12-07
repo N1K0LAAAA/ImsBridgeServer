@@ -241,14 +241,20 @@ class WebSocketServer extends EventEmitter {
         const guilds = ["Ironman Sweats", "Ironman Casuals", "Ironman Academy"];
         const playersByGuild = {};
         guilds.forEach(guild => {
-            playersByGuild[guild] = [];
+            playersByGuild[guild] = new Set();
         });
+
         this.authenticatedSockets.forEach((userData, socket) => {
             if(socket.readyState === WebSocket.OPEN) {
                 guildCounts[userData.guild_name] = (guildCounts[userData.guild_name] || 0) + 1;
-                playersByGuild[userData.guild_name].push(userData.minecraft_name);
+                playersByGuild[userData.guild_name].add(userData.minecraft_name);
             }
         });
+        const playersAsArrays = {};
+        for (const guild of guilds) {
+            playersAsArrays[guild] = Array.from(playersByGuild[guild]);
+        }
+
         return [guildCounts, playersByGuild];
     }
 

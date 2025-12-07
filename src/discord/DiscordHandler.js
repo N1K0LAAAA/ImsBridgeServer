@@ -125,13 +125,13 @@ class DiscordHandler {
     getGuildColor(guild) {
         switch(guild) {
             case 'Ironman Sweats':
-                return 0x55FF55; // Red
+                return 0x55FF55; // 
             case 'Ironman Academy':
-                return 0x00AA00; // Blue
+                return 0x00AA00; // 
             case 'Ironman Casuals':
-                return 0x00AAAA; // Green
+                return 0x00AAAA; // 
             default:
-                return 0x00AE86; // Default teal
+                return 0x00AE86; //
         }
     }
 }
