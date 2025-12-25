@@ -92,17 +92,23 @@ const execute = async (interaction) => {
         await confirmation.deferUpdate();
 
         const newUuid = await resetMemberKey(member);
+
         await interaction.client.wsServer.reloadValidKeys();
-        // Disconnect user if connected with old key
-        
+        const wasConnected = await interaction.client.wsServer.disconnectUser(member.minecraft_name);
+
         const dmSent = await sendNewKeyToDM(interaction, newUuid, member.minecraft_name);
 
         const successEmbed = new EmbedBuilder()
           .setTitle('Key Reset Successful')
           .setDescription(
-            dmSent
-              ? 'Your new UUID has been sent to your DMs!\n\n Your old key is now invalid.'
-              : 'Your key has been reset, but I couldn\'t send you a DM.\n\nPlease check your privacy settings and use `/key` to retrieve your new UUID.'
+            (dmSent
+              ? 'Your new UUID has been sent to your DMs!\n'
+              : 'Your key has been reset, but I couldn\'t send you a DM. Use `/key` to retrieve it.\n'
+            ) +
+            '\nYour old key is now invalid.\n' +
+            (wasConnected
+              ? 'Your active connection has been disconnected.'
+              : 'You were not actively connected.')
           )
           .setColor(0x00FF00)
           .setTimestamp();
@@ -112,7 +118,7 @@ const execute = async (interaction) => {
           components: []
         });
 
-        console.log(`[Command:reset-key] Key reset for ${member.minecraft_name} by ${interaction.user.username}`);
+        console.log(`[Command:reset-key] Key reset for ${member.minecraft_name} by ${interaction.user.username} (was connected: ${wasConnected})`);
       } else {
         await confirmation.deferUpdate();
         await interaction.editReply({
