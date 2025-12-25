@@ -1,0 +1,53 @@
+const GUILDS = {
+  IRONMAN_SWEATS: 'Ironman Sweats',
+  IRONMAN_ACADEMY: 'Ironman Academy',
+  IRONMAN_CASUALS: 'Ironman Casuals'
+};
+
+const GUILD_CONFIG = [
+  {
+    name: GUILDS.IRONMAN_SWEATS,
+    channelKey: 'IMS_BRIDGE_CHANNEL_ID',
+    displayName: '[IMS]',
+    color: 0x55FF55
+  },
+  {
+    name: GUILDS.IRONMAN_ACADEMY,
+    channelKey: 'IMA_BRIDGE_CHANNEL_ID',
+    displayName: '[IMA]',
+    color: 0x00AA00
+  },
+  {
+    name: GUILDS.IRONMAN_CASUALS,
+    channelKey: 'IMC_BRIDGE_CHANNEL_ID',
+    displayName: '[IMC]',
+    color: 0x00AAAA
+  }
+];
+
+const INTERVALS = {
+  CHANNEL_UPDATE: 5 * 60 * 1000,
+  GUILD_MEMBER_UPDATE: 10 * 60 * 1000
+};
+
+const WEBSOCKET = {
+  PORT: 3000,
+  AUTH_TIMEOUT: 10000
+};
+
+const RATE_LIMIT = {
+  MAX_REQUESTS_PER_5MIN: 300,
+  WINDOW_MS: 5 * 60 * 1000,
+  SAFETY_BUFFER: 10
+};
+
+const ADMIN_ROLE_IDS = ['1394154421897924690', '1394878381484671066'];
+
+module.exports = {
+  GUILDS,
+  GUILD_CONFIG,
+  INTERVALS,
+  WEBSOCKET,
+  RATE_LIMIT,
+  ADMIN_ROLE_IDS
+};
