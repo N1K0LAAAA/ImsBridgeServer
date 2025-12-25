@@ -9,8 +9,7 @@ const findUserByUsername = async (client, username) => {
       userCache.delete(username.toLowerCase());
     }
   }
-
-  for(const [, guild] of client.guilds.cache) {
+  for(const guild of client.guilds.cache.values()) {
     const member = guild.members.cache.find(m =>
       m.user.username.toLowerCase() === username.toLowerCase()
     );
