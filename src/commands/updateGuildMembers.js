@@ -61,7 +61,6 @@ const execute = async (interaction) => {
 const data = new SlashCommandBuilder()
   .setName('update-guild-members')
   .setDescription('Force an update of guild members (admin only)')
-  .setDefaultMemberPermissions(0)
   .setDMPermission(false);
 
 module.exports = { data, execute };

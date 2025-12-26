@@ -153,7 +153,6 @@ const data = new SlashCommandBuilder()
       .setDescription('The Minecraft username of the player')
       .setRequired(true)
   )
-  .setDefaultMemberPermissions(0)
   .setDMPermission(false);
 
 module.exports = { data, execute };

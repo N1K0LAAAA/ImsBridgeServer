@@ -155,7 +155,6 @@ const data = new SlashCommandBuilder()
       .setDescription('Reason for revoking access (will be sent to user)')
       .setRequired(false)
   )
-  .setDefaultMemberPermissions(0)
   .setDMPermission(false);
 
 module.exports = { data, execute };
