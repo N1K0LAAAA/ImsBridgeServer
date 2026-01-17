@@ -25,7 +25,7 @@ const createBot = () => {
   });
 
   const wsServer = createBridgeServer(3000);
-  client.wsServer = wsServer; 
+  client.wsServer = wsServer;
 
   const discordHandler = createDiscordHandler(client, channelIds, wsServer);
   const commandHandler = createCommandHandler(client);
@@ -56,8 +56,7 @@ const createBot = () => {
     setInterval(async () => {
       try {
         const updater = createGuildMemberUpdater(process.env.HYPIXEL_API_KEY);
-        await updater.updateGuildMembers();
-        await wsServer.reloadValidKeys();
+        await updater.updateGuildMembers(wsServer);
         console.log('[AutoUpdate] Guild members and keys reloaded');
       } catch(err) {
         console.error('[AutoUpdate] Failed:', err);

@@ -74,7 +74,7 @@ const createGuildMemberUpdater = (apiKey, guildNames = getAllGuildNames()) => {
     };
   };
 
-  const processGuild = async (guild, existingMap, allCurrentUUIDs, updatedMembers) => {
+  const processGuild = async (guild, existingMap, allCurrentUUIDs, updatedMembersMap) => {
     console.log(`Processing guild: ${guild}`);
     const log = [`Processing guild: ${guild}`];
     let newMembers = 0;
@@ -84,16 +84,23 @@ const createGuildMemberUpdater = (apiKey, guildNames = getAllGuildNames()) => {
 
       for(const uuid of uuids) {
         allCurrentUUIDs.add(uuid);
+
         const existing = existingMap.get(uuid);
 
         if(existing) {
-          existing.guild_name = guild;
-          updatedMembers.push(existing);
+          updatedMembersMap.set(uuid, {
+            minecraft_name: existing.minecraft_name,
+            minecraft_uuid: existing.minecraft_uuid,
+            discord_name: existing.discord_name,
+            generated_uuid: existing.generated_uuid,
+            guild_name: guild
+          });
+          console.log(`Updated existing member: ${existing.minecraft_name} (${guild}) - Key preserved`);
         } else {
           const info = await fetchNewMemberInfo(uuid, guild);
           if(info) {
-            updatedMembers.push(info);
-            console.log(`Added new member: ${info.minecraft_name} (${guild})`);
+            updatedMembersMap.set(uuid, info);
+            console.log(`Added new member: ${info.minecraft_name} (${guild}) - New key generated`);
             log.push(`Added new member: ${info.minecraft_name} (${guild})`);
             newMembers++;
           }
@@ -129,31 +136,51 @@ const createGuildMemberUpdater = (apiKey, guildNames = getAllGuildNames()) => {
     return summary;
   };
 
-  const updateGuildMembers = async () => {
+  const updateGuildMembers = async (wsServer = null) => {
     const existingMembers = await loadExistingMembers();
     const existingMap = new Map(existingMembers.map(m => [m.minecraft_uuid, m]));
     const allCurrentUUIDs = new Set();
-    const updatedMembers = [];
+    const updatedMembersMap = new Map(); 
 
     let totalNewMembers = 0;
-    let totalProcessed = 0;
     const updateLog = [];
 
-    // Process all guilds
     for(const guild of guildNames) {
-      const { newMembers, log } = await processGuild(guild, existingMap, allCurrentUUIDs, updatedMembers);
+      const { newMembers, log } = await processGuild(guild, existingMap, allCurrentUUIDs, updatedMembersMap);
       totalNewMembers += newMembers;
-      totalProcessed += updatedMembers.length;
       updateLog.push(...log);
     }
 
-    // Filter results
-    const membersWhoLeft = updatedMembers.filter(({ minecraft_uuid }) => !allCurrentUUIDs.has(minecraft_uuid));
-    const finalList = updatedMembers.filter(({ minecraft_uuid }) => allCurrentUUIDs.has(minecraft_uuid));
+    const updatedMembers = Array.from(updatedMembersMap.values());
 
+    const membersWhoLeft = existingMembers.filter(
+      ({ minecraft_uuid }) => !allCurrentUUIDs.has(minecraft_uuid)
+    );
+
+    const finalList = updatedMembers;
     await saveMembers(finalList);
 
-    return buildSummary(totalProcessed, totalNewMembers, membersWhoLeft.length, finalList.length, updateLog);
+    if(wsServer && membersWhoLeft.length > 0) {
+      console.log(`Processing ${membersWhoLeft.length} players who left guilds...`);
+
+      await wsServer.reloadValidKeys();
+
+      for(const member of membersWhoLeft) {
+        const disconnected = await wsServer.disconnectUser(member.minecraft_name);
+        if(disconnected) {
+          console.log(`[AutoKick] Disconnected ${member.minecraft_name} - left ${member.guild_name}`);
+          updateLog.push(`Disconnected ${member.minecraft_name} - no longer in ${member.guild_name}`);
+        }
+      }
+    }
+
+    return buildSummary(
+      updatedMembers.length,
+      totalNewMembers,
+      membersWhoLeft.length,
+      finalList.length,
+      updateLog
+    );
   };
 
   return { updateGuildMembers };
