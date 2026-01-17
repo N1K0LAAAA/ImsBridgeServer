@@ -133,6 +133,24 @@ const createBridgeServer = (port = WEBSOCKET.PORT) => {
     });
   };
 
+  const handleBridgeShowMessage = (obj, userData) => {
+    emitter.emit('minecraftBounceShow', {
+      msg: obj.msg,
+      player: userData.minecraft_name,
+      combinedbridge: obj.combinedbridge,
+      guild: userData.guild_name,
+      jsonStack: obj.jsonStack
+    });
+
+    emitter.emit('minecraftMessage', {
+      message: obj.msg,
+      player: userData.minecraft_name,
+      combinedbridge: obj.combinedbridge,
+      guild: userData.guild_name,
+      show: true
+    });
+  };
+
   const getConnectedClientsByGuild = () => {
     const { getAllGuildNames } = require('../utils/guildMapper');
     const guildCounts = {};
@@ -183,10 +201,14 @@ const createBridgeServer = (port = WEBSOCKET.PORT) => {
 
       if(obj.request) {
         handleClientCommandRequest(obj, userData);
+      } else if (obj.from === 'show' && obj.msg) {
+        handleBridgeShowMessage(obj, userData)
       } else if(obj.combinedbridge) {
         handleCombinedBridgeMessage(obj, userData);
       } else if(obj.from === 'mc' && obj.msg && isUniqueGuildMsg(obj.msg)) {
         handleGuildMessage(obj, userData);
+      } else {
+        // console.log(obj)
       }
     } catch(e) {
       console.log('[WS] Invalid JSON:', e);

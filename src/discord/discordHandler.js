@@ -50,8 +50,26 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
     }
   };
 
-  const parseMessage = (message, player, combinedbridge) => {
-    if(combinedbridge) {
+  const bounceMinecraftShowMessage = ({ msg, player, combinedbridge, guild, jsonStack }) => {
+    try {
+      wsServer.sendToMinecraft({
+        from: 'mc',
+        msg: `${player}: ${msg}`,
+        combinedbridge,
+        fromplayer: player,
+        guild,
+        jsonStack: jsonStack,
+        show: 'true'
+      }, null, null);
+
+      console.log(`[MC] Bounced show chat msg: ${player}: ${msg}`);
+    } catch(err) {
+      console.error('[MC] Bounce error:', err);
+    }
+  };
+
+  const parseMessage = (message, player, combinedbridge, show) => {
+    if(combinedbridge || show) {
       return { author: player, text: message };
     }
 
@@ -73,7 +91,7 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
       .setFooter({ text: `Received from: ${guildDisplayName} ${player}` });
   };
 
-  const sendMinecraftMessageToDiscord = async ({ message, player, combinedbridge, guild }) => {
+  const sendMinecraftMessageToDiscord = async ({ message, player, combinedbridge, guild, show }) => {
     try {
       const channelId = combinedbridge
         ? channelIds.COMBINED_CHANNEL_ID
@@ -84,7 +102,7 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
         return;
       }
 
-      const { author, text } = parseMessage(message, player, combinedbridge);
+      const { author, text } = parseMessage(message, player, combinedbridge, show);
       const embed = createMessageEmbed(author, text, guild, player);
 
       const channel = await client.channels.fetch(channelId);
@@ -100,8 +118,9 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
   client.on('messageCreate', handleDiscordMessage);
   wsServer.on('minecraftMessage', sendMinecraftMessageToDiscord);
   wsServer.on('minecraftBounce', bounceMinecraftMessage);
+  wsServer.on('minecraftBounceShow', bounceMinecraftShowMessage);
 
-  return { handleDiscordMessage, sendMinecraftMessageToDiscord, bounceMinecraftMessage };
+  return { handleDiscordMessage, sendMinecraftMessageToDiscord, bounceMinecraftMessage, bounceMinecraftShowMessage };
 };
 
 module.exports = createDiscordHandler;
