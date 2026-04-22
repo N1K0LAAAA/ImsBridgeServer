@@ -52,6 +52,7 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
 
   const bounceMinecraftShowMessage = ({ msg, player, combinedbridge, guild, jsonStack }) => {
     try {
+      const targetGuild = combinedbridge ? null : guild;
       wsServer.sendToMinecraft({
         from: 'mc',
         msg: `${player}: ${msg}`,
@@ -60,7 +61,7 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
         guild,
         jsonStack: jsonStack,
         show: 'true'
-      }, null, null);
+      }, targetGuild, null);
 
       console.log(`[MC] Bounced show chat msg: ${player}: ${msg}`);
     } catch(err) {
