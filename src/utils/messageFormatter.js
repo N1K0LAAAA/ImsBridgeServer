@@ -16,12 +16,28 @@ const cleanGuildMessage = (msg) => {
   return `${name} : ${body}`;
 };
 
-const normalizeForDeduplication = (msg) =>
-  cleanGuildMessage(msg)
+const normalizeForDeduplication = (msg) =>{
+  return cleanGuildMessage(msg)
     .replace(/\s+/g, ' ')
     .toLowerCase();
+}
+
+const sanitizeDiscordText = (text = '') => {
+  return String(text)
+    .replace(/please be mindful of discord links in chat as they may pose a security risk/gi, '')
+    .replace(/https?:\/\/(?:www\.)?discord\.gg\/\S+/gi, '')
+    .replace(/https?:\/\/(?:www\.)?discord\.com\/invite\/\S+/gi, '')
+    .replace(/https?:\/\/\S+/gi, '')
+    .replace(/www\.\S+/gi, '')
+    .replace(/@/g, '@\u200B')
+    .replace(/([\\*_`~>|#[\]()])/g, '\\$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
 
 module.exports = {
   cleanGuildMessage,
-  normalizeForDeduplication
+  normalizeForDeduplication,
+  sanitizeDiscordText
 };
+

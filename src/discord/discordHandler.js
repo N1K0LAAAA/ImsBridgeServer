@@ -1,14 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
-const {
-  getGuildByChannelId,
-  getChannelIdByGuildName,
-  getGuildColor,
-  getGuildDisplayName
-} = require('../utils/guildMapper');
-
-const escapeDiscordMarkdown = (text = '') => {
-  return String(text).replace(/([\\*_`~>|#])/g, '\\$1');
-};
+const { getGuildByChannelId, getChannelIdByGuildName, getGuildColor, getGuildDisplayName } = require('../utils/guildMapper');
+const {sanitizeDiscordText} = require('../utils/messageFormatter');
 
 const createDiscordHandler = (client, channelIds, wsServer) => {
   const getMessageRoutingInfo = (channelId) => {
@@ -94,7 +86,7 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
   const createMessageEmbed = (author, text, guild, player, usesMod) => {
     const guildDisplayName = getGuildDisplayName(guild);
     const modStatus = usesMod ? '✅' : '❌';
-    const safeText = escapeDiscordMarkdown(text);
+    const safeText = sanitizeDiscordText(text);
     
     return new EmbedBuilder()
       .setColor(getGuildColor(guild))
