@@ -78,13 +78,23 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
     return { author, text: messageParts.join(" : ") };
   };
 
-  const createMessageEmbed = (author, text, guild, player) => {
+  const getConnectedPlayerNames = () => {
+    const [, playersByGuild] = wsServer.getConnectedClientsByGuild();
+    return new Set(
+      Object.values(playersByGuild)
+        .flat()
+        .map(name => name.toLowerCase())
+    );
+  };
+
+  const createMessageEmbed = (author, text, guild, player, usesMod) => {
     const guildDisplayName = getGuildDisplayName(guild);
+    const modStatus = usesMod ? '✅' : '❌';
 
     return new EmbedBuilder()
       .setColor(getGuildColor(guild))
       .setAuthor({
-        name: author,
+        name: `${author} ${modStatus}`,
         iconURL: `https://www.mc-heads.net/avatar/${author}`
       })
       .setDescription(text)
@@ -104,7 +114,8 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
       }
 
       const { author, text } = parseMessage(message, player, combinedbridge, show);
-      const embed = createMessageEmbed(author, text, guild, player);
+      const usesMod = getConnectedPlayerNames().has(author?.toLowerCase());
+      const embed = createMessageEmbed(author, text, guild, player, usesMod);
 
       const channel = await client.channels.fetch(channelId);
       await channel.send({ embeds: [embed] });
