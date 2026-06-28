@@ -6,6 +6,10 @@ const {
   getGuildDisplayName
 } = require('../utils/guildMapper');
 
+const escapeDiscordMarkdown = (text = '') => {
+  return String(text).replace(/([\\*_`~>|#])/g, '\\$1');
+};
+
 const createDiscordHandler = (client, channelIds, wsServer) => {
   const getMessageRoutingInfo = (channelId) => {
     if(channelId === channelIds.COMBINED_CHANNEL_ID) {
@@ -15,7 +19,7 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
     const targetGuild = getGuildByChannelId(channelId, channelIds);
     return targetGuild ? { combinedBridge: false, targetGuild } : null;
   };
-
+  
   const handleDiscordMessage = (msg) => {
     if(msg.author.bot) return;
 
@@ -90,14 +94,15 @@ const createDiscordHandler = (client, channelIds, wsServer) => {
   const createMessageEmbed = (author, text, guild, player, usesMod) => {
     const guildDisplayName = getGuildDisplayName(guild);
     const modStatus = usesMod ? '✅' : '❌';
-
+    const safeText = escapeDiscordMarkdown(text);
+    
     return new EmbedBuilder()
       .setColor(getGuildColor(guild))
       .setAuthor({
         name: `${author} ${modStatus}`,
         iconURL: `https://www.mc-heads.net/avatar/${author}`
       })
-      .setDescription(text)
+      .setDescription(safeText)
       .setTimestamp()
       .setFooter({ text: `Received from: ${guildDisplayName} ${player}` });
   };
