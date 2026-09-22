@@ -112,6 +112,7 @@ const createGuildMemberUpdater = (apiKey, guildNames = getAllGuildNames()) => {
     } catch(error) {
       console.error(`Error processing guild ${guild}:`, error.message);
       log.push(`Error processing ${guild}: ${error.message}`);
+      throw error;
     }
 
     return { newMembers, log };
